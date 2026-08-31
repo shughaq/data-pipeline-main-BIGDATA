@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+data/*.csv
+!data/.gitkeep
+data/_incremental_state.json
+spark-warehouse/
+metastore_db/
+*.log
+.ipynb_checkpoints/

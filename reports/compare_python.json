@@ -1,0 +1,37 @@
+[
+  {
+    "id_run": "6c721c6b-1d6a-41ea-b7bc-5617ddae17ae",
+    "file_name": ".\\data\\orders_sample_before_update_test.csv",
+    "file_size_mb": 5.011,
+    "used_engine": "python_batch",
+    "read_rows": 12008,
+    "loaded_raw": 12008,
+    "count_valid": 8830,
+    "count_corrected": 2306,
+    "count_quarantine": 872,
+    "seconds_elapsed": 9.7663,
+    "throughput_rows_per_sec": 1229.53,
+    "partitions": null,
+    "size_batch": 1000,
+    "counts_case_error": {
+      "AMBIGUOUS_NEGATIVE_VALUE": 111,
+      "MULTIPLE_CONFLICTING_ERRORS": 80,
+      "DUPLICATE_ORDER_ID": 96,
+      "MISSING_CUSTOMER_ID": 103,
+      "CORRUPTED_ITEMS_JSON": 89,
+      "MISSING_ORDER_ID": 95,
+      "EMPTY_ITEMS": 127,
+      "EMAIL_UNFIXABLE": 94,
+      "INVALID_IMPOSSIBLE_DATE": 77
+    },
+    "count_inserted": 11136,
+    "count_updated": 0,
+    "count_unchanged": 0,
+    "consistency_check": {
+      "raw_equals_valid_plus_corrected_plus_quarantine": true,
+      "loaded_raw": 12008,
+      "expected_from_sum": 12008
+    },
+    "generated_at": "2026-08-23T23:53:48.122950+00:00"
+  }
+]

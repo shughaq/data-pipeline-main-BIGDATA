@@ -1,0 +1,38 @@
+[
+  {
+    "id_run": "3bb63d5e-e828-46dd-b3d6-c7c668de044f",
+    "file_name": "data\\orders_huge_mixed_quality.csv",
+    "file_size_mb": 12650.32,
+    "used_engine": "pyspark",
+    "read_rows": 30000000,
+    "loaded_raw": 30000000,
+    "count_valid": 23513283,
+    "count_corrected": 2866644,
+    "count_quarantine": 3620073,
+    "seconds_elapsed": 27569.953,
+    "throughput_rows_per_sec": 1088.14,
+    "partitions": null,
+    "size_batch": null,
+    "counts_case_error": {
+      "CORRUPTED_ITEMS_JSON": 208978,
+      "EMAIL_UNFIXABLE": 207761,
+      "MULTIPLE_CONFLICTING_ERRORS": 228921,
+      "MISSING_CUSTOMER_ID": 208616,
+      "EMPTY_ITEMS": 208471,
+      "UNKNOWN_PRICE": 663395,
+      "INVALID_IMPOSSIBLE_DATE": 539685,
+      "DUPLICATE_ORDER_ID": 396641,
+      "AMBIGUOUS_NEGATIVE_VALUE": 748213,
+      "MISSING_ORDER_ID": 209392
+    },
+    "count_inserted": 26379927,
+    "count_updated": 0,
+    "count_unchanged": 0,
+    "consistency_check": {
+      "raw_equals_valid_plus_corrected_plus_quarantine": true,
+      "loaded_raw": 30000000,
+      "expected_from_sum": 30000000
+    },
+    "generated_at": "2026-08-23T19:39:57.637976+00:00"
+  }
+]
