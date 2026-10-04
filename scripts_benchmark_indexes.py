@@ -6,13 +6,37 @@ from pymongo import MongoClient
 from config.settings import MONGODB_URI, DB_NAME, REPORTS_DIR, COLLECTION_VALIDATED
 from src.final_features import create_query_indexes, explain_query
 
-REQUIRED_INDEXES = ["idx_city_status_date", "idx_customer_date", "idx_status_date", "idx_total_amount"]
-CASES = [
-    ("orders_by_city_status", {"city": "صنعاء", "status": "تم التسليم", "limit": 20}),
-    ("customer_orders", {"customer_id": "CUST-001", "limit": 20}),
-    ("orders_by_status", {"status": "تم التسليم", "limit": 20}),
+REQUIRED_INDEXES = [
+    "idx_city_status_date",
+    "idx_customer_date",
+    "idx_status_order_date",
+    "idx_total_amount"
 ]
 
+CASES = [
+    (
+        "orders_by_city_status",
+        {
+            "city": "صنعاء",
+            "status": "تم التسليم",
+            "limit": 20
+        }
+    ),
+    (
+        "customer_orders",
+        {
+            "customer_id": "CUST-001",
+            "limit": 20
+        }
+    ),
+    (
+        "orders_by_status",
+        {
+            "status": "تم التسليم",
+            "limit": 20
+        }
+    ),
+]
 def summarize(explain):
     stats = explain.get("executionStats", {})
     qp = explain.get("queryPlanner", {})
