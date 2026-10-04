@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from config.settings import INCREMENTAL_STATE_PATH
 from src.batch_loader import _flush_batch
 from src.elt_pipeline import process_row
+from src.console_ui import section, info, warning
 
 import csv
 
@@ -43,14 +44,12 @@ def run_incremental_load(file_path, db, id_run, metrics, stage_label, batch_size
 
     previous_run = next((r for r in state["runs"] if r["file_hash"] == file_hash), None)
     if previous_run:
-        print(f"[Incremental] تنبيه: هذا الملف ({file_path}) سبق معالجته في "
-              f"id_run={previous_run['id_run']} ({previous_run['stage']}) بتاريخ "
-              f"{previous_run['at']}. سنعيد تطبيق الـUpsert وهو آمن (Idempotent) "
-              "لأن الكتابة تعتمد على order_id كمفتاح ثابت وليس على $inc.")
+        warning(f"File already processed: {file_path} | previous run={previous_run['id_run']} | stage={previous_run['stage']} | {previous_run['at']}. Reapplying idempotent upsert.")
     else:
-        print(f"[Incremental] ملف جديد لم يُعالج من قبل: {file_path}")
+        info("FILE", f"new incremental source: {file_path}")
 
-    print(f"[Incremental] مرحلة: {stage_label} | id_run={id_run}")
+    section(f"INCREMENTAL • {stage_label.upper()}")
+    info("RUN ID", id_run)
 
     seen_order_ids = set()
     file_source = str(file_path)
@@ -103,7 +102,8 @@ def run_incremental_load(file_path, db, id_run, metrics, stage_label, batch_size
     })
     _save_state(state)
 
-    print(f"[Incremental] انتهت مرحلة {stage_label}: "
-          f"inserted={metrics.count_inserted} updated={metrics.count_updated} unchanged={metrics.count_unchanged}")
+    section("INCREMENTAL COMPLETE")
+    info("STAGE", stage_label)
+    info("UPSERT", f"inserted={metrics.count_inserted} | updated={metrics.count_updated} | unchanged={metrics.count_unchanged}")
 
     return metrics

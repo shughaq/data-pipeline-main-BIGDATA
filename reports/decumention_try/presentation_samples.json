@@ -1,0 +1,56 @@
+{
+  "valid_sample": {
+    "order_id": "10000128",
+    "quality_status": "valid",
+    "corrections": [],
+    "file_source": "data/orders_huge_mixed_quality.csv",
+    "record_hash": "b4c59828f7e0b719a6ab691b609f8b9b19e44cef23cb14c84c376752bfe0fb9d"
+  },
+  "corrected_sample": {
+    "order_id": "طلب-10000348",
+    "quality_status": "corrected",
+    "corrections": [
+      {
+        "field": "customer_email",
+        "original_value": "user619817@@example.com",
+        "corrected_value": "user619817@example.com",
+        "rule_code": "EMAIL_REPEATED_SYMBOLS"
+      }
+    ],
+    "file_source": "data/orders_huge_mixed_quality.csv",
+    "record_hash": "d313c1449a66793ed1bea1829c9471c1661a247b3194f3b25e4bdf8766accd03"
+  },
+  "quarantine_sample": {
+    "error_codes": [
+      "DUPLICATE_ORDER_ID"
+    ],
+    "error_details": "DUPLICATE_ORDER_ID",
+    "partial_corrections_attempted": [],
+    "file_source": "data/orders_huge_mixed_quality.csv",
+    "record_raw": {
+      "order_id": "10132382",
+      "order_date": "2025-01-16T12:37:00",
+      "status": "ملغي",
+      "customer_id": "عميل-10032382",
+      "customer_name": "يوسف طارق",
+      "customer_phone": "710219778",
+      "customer_email": "user915642@example.com",
+      "city": "حجة",
+      "district": "التحرير",
+      "delivery_type": "سريع",
+      "delivery_cost": "5000.0",
+      "payment_method": "محفظة إلكترونية",
+      "payment_status": "تم الدفع",
+      "payment_amount": "86000.0",
+      "currency": "YER",
+      "total_amount": "86000.0",
+      "items_json": "[{\"sku\":\"SKU-1009\",\"name\":\"شاحن سريع\",\"qty\":2,\"unit_price\":10000.0,\"total\":20000.0},{\"sku\":\"SKU-1005\",\"name\":\"سماعات رأس\",\"qty\":2,\"unit_price\":26000.0,\"total\":52000.0},{\"sku\":\"SKU-1002\",\"name\":\"فأرة لاسلكية\",\"qty\":1,\"unit_price\":9000.0,\"total\":9000.0}]"
+    }
+  },
+  "large_run_verified_counts": {
+    "valid": 23513283,
+    "corrected": 2866644,
+    "quarantine": 3620073,
+    "total": 30000000
+  }
+}

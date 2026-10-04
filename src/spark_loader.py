@@ -10,6 +10,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import ArrayType, DoubleType, StringType, StructField, StructType
 
+from src.console_ui import section, info, warning, success
+
 from config.settings import (
     COLLECTION_QUARANTINE,
     COLLECTION_RAW,
@@ -256,7 +258,9 @@ def run_spark_load(file_path, spark, id_run, metrics):
         )
         file_source = f"raw://{COLLECTION_RAW}/{id_run}"
         metrics.partitions = None
-        print(f"[SparkLoader] Resume from MongoDB Raw: collection={RAW_SOURCE_COLLECTION}, id_run={id_run}")
+        section("SPARK • RESUME FROM RAW")
+        info("COLLECTION", RAW_SOURCE_COLLECTION)
+        info("RUN ID", id_run)
 
     else:
         df = spark.read.option("header", "true").option("multiLine", "false").option("escape", '"').schema(RAW_SCHEMA).csv(file_source)
@@ -266,13 +270,13 @@ def run_spark_load(file_path, spark, id_run, metrics):
             metrics.partitions = None
     actual_partitions = df.rdd.getNumPartitions()
     metrics.partitions = actual_partitions
-    print(f"[SparkLoader] Actual input partitions: {actual_partitions}")
+    info("PARTITIONS", actual_partitions)
 
     # print(f"[SparkLoader] Input Partitions المقدرة: {metrics.partitions}")
 
     total_rows = df.count()
     metrics.read_rows = total_rows
-    print(f"[SparkLoader] عدد السجلات المقروءة: {total_rows}")
+    info("ROWS READ", total_rows)
 
     raw_df = (
         df.withColumn("run_id", F.lit(id_run))
@@ -284,7 +288,7 @@ def run_spark_load(file_path, spark, id_run, metrics):
         .select("run_id", "source_file", "source_row_number", "ingested_at", "engine_used", "raw_record")
     )
     if resume_skip_raw:
-        print(f"[SparkLoader] استئناف: تم تجاوز إعادة كتابة {COLLECTION_RAW} باستخدام id_run={id_run}.")
+        warning(f"Raw rewrite skipped for resume run={id_run}")
     else:
         _connector_write(raw_df, COLLECTION_RAW)
     metrics.loaded_raw = total_rows
@@ -365,12 +369,12 @@ def run_spark_load(file_path, spark, id_run, metrics):
             ).count()
             metrics.count_unchanged = compared.filter(F.col("old_record_hash") == F.col("record_hash")).count()
         else:
-            print("[SparkLoader] orders_validated فارغة أو بلا schema؛ اعتُبرت كل النتائج جديدة.")
+            warning("orders_validated is empty or has no schema; all results treated as new")
             metrics.count_inserted = validated_df.count()
             metrics.count_updated = 0
             metrics.count_unchanged = 0
     except Exception as exc:  # First run or an unavailable collection.
-        print(f"[SparkLoader] تعذر قراءة حالة validated السابقة؛ اعتُبرت كل النتائج جديدة: {exc}")
+        warning(f"Could not read previous validated state; all results treated as new: {exc}")
         metrics.count_inserted = validated_df.count()
         metrics.count_updated = 0
         metrics.count_unchanged = 0
@@ -388,5 +392,8 @@ def run_spark_load(file_path, spark, id_run, metrics):
     metrics.counts_case_error = {row["code"]: row["count"] for row in error_rows}
 
     elapsed = time.perf_counter() - start
-    print(f"[SparkLoader] انتهى: {total_rows} سجل خلال {elapsed:.2f}s ({total_rows / elapsed:.1f} سجل/ثانية).")
+    section("SPARK LOAD COMPLETE")
+    info("ROWS", total_rows)
+    info("TIME", f"{elapsed:.2f}s")
+    info("THROUGHPUT", f"{total_rows / elapsed:.1f} rows/s")
     return metrics

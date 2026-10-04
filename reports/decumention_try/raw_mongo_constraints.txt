@@ -1,0 +1,14 @@
+﻿from pymongo import MongoClient
+from pprint import pprint
+
+client = MongoClient("mongodb://127.0.0.1:27017")
+db = client["midterm_orders_pipeline"]
+
+print("=== db.orders_validated.getIndexes() ===")
+pprint(list(db.orders_validated.list_indexes()))
+
+print("=== db.getCollectionInfos({name: orders_validated})[0].options.validator ===")
+info = db.command("listCollections", filter={"name": "orders_validated"})["cursor"]["firstBatch"]
+pprint(info[0].get("options", {}).get("validator") if info else None)
+
+client.close()

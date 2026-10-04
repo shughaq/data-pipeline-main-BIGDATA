@@ -3,6 +3,7 @@ import time
 from datetime import datetime, timezone
 
 from config.settings import RESULTS_JSON_PATH
+from src.console_ui import info
 
 
 class RunMetrics:
@@ -104,5 +105,5 @@ def append_run_to_results_file(run_metrics_dict, results_path=None):
     with results_path.open("w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
 
-    print(f"[Metrics] تم حفظ نتائج التشغيل في: {results_path}")
+    info("RESULTS", f"saved to {results_path}")
     return results_path

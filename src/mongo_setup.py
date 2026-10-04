@@ -1,6 +1,8 @@
 from pymongo import ASCENDING
 from pymongo.errors import CollectionInvalid
 
+from src.console_ui import section, info, warning
+
 from config.settings import (
     COLLECTION_RAW,
     COLLECTION_VALIDATED,
@@ -31,7 +33,7 @@ def ensure_collections(db):
     # 1) orders_raw: بدون أي Validator أو Unique Index (نص صريح في التكليف)
     if COLLECTION_RAW not in existing:
         db.create_collection(COLLECTION_RAW)
-        print(f"[MongoSetup] أُنشئت collection: {COLLECTION_RAW} (بدون Validator/Index)")
+        info("RAW", f"created: {COLLECTION_RAW} (no validator/index)")
 
     db[COLLECTION_RAW].create_index([("id_run", ASCENDING)])
     db[COLLECTION_RAW].create_index([("order_id", ASCENDING)])
@@ -45,7 +47,7 @@ def ensure_collections(db):
                 validationLevel="moderate",
                 validationAction="warn",  # warn بدل error: نوثّق التحذير بدل ما نوقف الـUpsert
             )
-            print(f"[MongoSetup] أُنشئت collection: {COLLECTION_VALIDATED} (مع Schema Validation)")
+            info("VALIDATED", f"created: {COLLECTION_VALIDATED} (schema validation)")
         except CollectionInvalid:
             pass
     else:
@@ -57,7 +59,7 @@ def ensure_collections(db):
                 "validationAction": "warn",
             })
         except Exception as exc:  # noqa: BLE001 - نطبع تحذير فقط، ما نوقف المشروع
-            print(f"[MongoSetup] تحذير: تعذّر تحديث الـSchema Validation ({exc})")
+            warning(f"Schema validation update skipped: {exc}")
 
     db[COLLECTION_VALIDATED].create_index(
         [("order_id", ASCENDING)], unique=True, name="uniq_order_id"
@@ -66,7 +68,9 @@ def ensure_collections(db):
     # 3) orders_quarantine: بدون قيود صارمة (نريد نقدر نعزل أي سجل مهما كان شكله)
     if COLLECTION_QUARANTINE not in existing:
         db.create_collection(COLLECTION_QUARANTINE)
-        print(f"[MongoSetup] أُنشئت collection: {COLLECTION_QUARANTINE}")
+        info("QUARANTINE", f"created: {COLLECTION_QUARANTINE}")
     db[COLLECTION_QUARANTINE].create_index([("id_run", ASCENDING)])
 
-    print("[MongoSetup] كل الـcollections والـIndexes جاهزة.")
+    section("MONGODB READY")
+    info("COLLECTIONS", "raw • validated • quarantine")
+    info("INDEX", "uniq_order_id on validated")

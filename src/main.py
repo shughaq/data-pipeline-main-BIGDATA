@@ -10,6 +10,7 @@ from src.mongo_setup import ensure_collections
 from src.metrics import RunMetrics, append_run_to_results_file
 from src.batch_loader import run_batch_load
 from src.incremental_loader import run_incremental_load
+from src.console_ui import banner, section, info, success, warning
 
 
 def parse_args():
@@ -29,7 +30,7 @@ def main():
     args = parse_args()
     id_run = str(uuid.uuid4())
 
-    print(f"===== بدء تشغيل جديد | id_run = {id_run} =====")
+    banner("HYBRID DATA PIPELINE", f"RUN ID • {id_run}")
 
     decision = decide_engine(args.input, threshold_mb=args.threshold_mb)
 
@@ -64,28 +65,27 @@ def main():
 
         ok, expected = metrics.consistency_check()
         if not ok:
-            print(f"[main] تحذير: فشل اختبار الاتساق! loaded_raw={metrics.loaded_raw} "
-                  f"لكن valid+corrected+quarantine={expected}")
+            warning(f"Consistency check failed | raw={metrics.loaded_raw} | expected={expected}")
         else:
-            print("[main] اجتاز اختبار الاتساق (البند 6.11): raw = valid + corrected + quarantine [OK]")
+            success("Consistency check passed • raw = valid + corrected + quarantine")
 
         append_run_to_results_file(result_dict)
 
-        print("===== ملخص التشغيل =====")
+        section("RUN SUMMARY")
         for key in ("used_engine", "read_rows", "loaded_raw", "count_valid", "count_corrected",
                     "count_quarantine", "seconds_elapsed", "throughput_rows_per_sec",
                     "count_inserted", "count_updated", "count_unchanged"):
-            print(f"  {key}: {result_dict[key]}")
+            info(key.upper(), result_dict[key])
 
     finally:
         # إغلاق سليم لكل الاتصالات (البند 9: try/finally لـSpark وMongo)
         if spark_session is not None:
             spark_session.stop()
-            print("[main] تم إغلاق SparkSession.")
+            success("SparkSession closed")
         client.close()
-        print("[main] تم إغلاق اتصال MongoDB.")
+        success("MongoDB connection closed")
 
-    print(f"===== انتهى التشغيل | النتائج في {RESULTS_JSON_PATH} =====")
+    banner("RUN FINISHED", f"RESULTS • {RESULTS_JSON_PATH}")
 
 
 if __name__ == "__main__":

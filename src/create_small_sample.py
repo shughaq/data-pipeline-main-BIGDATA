@@ -2,13 +2,15 @@ import argparse
 import csv
 import random
 import sys
+
+from src.console_ui import section, info, error
 from pathlib import Path
 
 
 def create_sample(input_path, output_path, target_rows, seed=42):
     input_path = Path(input_path)
     if not input_path.exists():
-        print(f"[Sample] ERROR: input file not found: {input_path}")
+        error(f"Input file not found: {input_path}")
         sys.exit(1)
     if target_rows <= 0:
         raise ValueError("target_rows must be positive")
@@ -37,8 +39,9 @@ def create_sample(input_path, output_path, target_rows, seed=42):
         writer.writerow(header)
         writer.writerows(reservoir)
 
-    print(f"[Sample] source: {input_path} ({total_rows} data rows)")
-    print(f"[Sample] output: {output_path} ({len(reservoir)} data rows)")
+    section("SAMPLE CREATED")
+    info("SOURCE", f"{input_path} ({total_rows} rows)")
+    info("OUTPUT", f"{output_path} ({len(reservoir)} rows)")
     return output_path, len(reservoir)
 
 def main():

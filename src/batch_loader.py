@@ -5,6 +5,7 @@ from pymongo.errors import BulkWriteError
 
 from config.settings import BATCH_SIZE, COLLECTION_RAW, COLLECTION_VALIDATED, COLLECTION_QUARANTINE
 from src.elt_pipeline import process_row
+from src.console_ui import section, info, warning, error
 
 
 def _flush_batch(db, id_run, raw_docs, validated_ops, quarantine_docs, batch_number, batch_start_time, metrics):
@@ -15,8 +16,7 @@ def _flush_batch(db, id_run, raw_docs, validated_ops, quarantine_docs, batch_num
         if raw_docs:
             db[COLLECTION_RAW].insert_many(raw_docs, ordered=False)
     except BulkWriteError as exc:
-        print(f"[Batch #{batch_number}] خطأ جزئي في كتابة orders_raw: "
-              f"{exc.details.get('writeErrors', exc.details)}")
+        error(f"Batch {batch_number:02d} | orders_raw write warning: {exc.details.get('writeErrors', exc.details)}")
 
     inserted = updated = unchanged = 0
     if validated_ops:
@@ -26,21 +26,18 @@ def _flush_batch(db, id_run, raw_docs, validated_ops, quarantine_docs, batch_num
             updated = result.modified_count
             unchanged = max(result.matched_count - result.modified_count, 0)
         except BulkWriteError as exc:
-            print(f"[Batch #{batch_number}] خطأ جزئي في Upsert لـ orders_validated: "
-                  f"{exc.details.get('writeErrors', exc.details)}")
+            error(f"Batch {batch_number:02d} | validated upsert warning: {exc.details.get('writeErrors', exc.details)}")
 
     # 3) orders_quarantine
     try:
         if quarantine_docs:
             db[COLLECTION_QUARANTINE].insert_many(quarantine_docs, ordered=False)
     except BulkWriteError as exc:
-        print(f"[Batch #{batch_number}] خطأ جزئي في كتابة orders_quarantine: "
-              f"{exc.details.get('writeErrors', exc.details)}")
+        error(f"Batch {batch_number:02d} | quarantine write warning: {exc.details.get('writeErrors', exc.details)}")
 
     elapsed = time.perf_counter() - batch_start_time
     rate = n_records / elapsed if elapsed > 0 else 0.0
-    print(f"[Batch #{batch_number}] سجلات: {n_records} | زمن: {elapsed:.3f}s | "
-          f"معدل الإدخال: {rate:.1f} سجل/ثانية | inserted={inserted} updated={updated} unchanged={unchanged}")
+    info(f"Batch {batch_number:02d}", f"rows={n_records} | {elapsed:.3f}s | {rate:.1f} rows/s | inserted={inserted} updated={updated} unchanged={unchanged}")
 
     metrics.count_inserted += inserted
     metrics.count_updated += updated
@@ -64,7 +61,9 @@ def run_batch_load(file_path, db, id_run, metrics, batch_size=None, seen_order_i
     batch_number = 0
     batch_start_time = time.perf_counter()
 
-    print(f"[BatchLoader] بدء القراءة Streaming من: {file_source} (حجم الدفعة: {batch_size})")
+    section("PYTHON BATCH • STREAMING")
+    info("SOURCE", file_source)
+    info("BATCH SIZE", batch_size)
 
     with open(file_path, encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)  # قراءة سطر سطر - لا نحوّله لقائمة أبدًا
@@ -103,5 +102,7 @@ def run_batch_load(file_path, db, id_run, metrics, batch_size=None, seen_order_i
         _flush_batch(db, id_run, raw_docs, validated_ops, quarantine_docs,
                      batch_number, batch_start_time, metrics)
 
-    print(f"[BatchLoader] انتهى: {metrics.read_rows} سجل مقروء عبر {batch_number} دفعة.")
+    section("BATCH LOAD COMPLETE")
+    info("ROWS READ", metrics.read_rows)
+    info("BATCHES", batch_number)
     return metrics

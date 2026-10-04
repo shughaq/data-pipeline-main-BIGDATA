@@ -1,6 +1,7 @@
 import os
 
 from config.settings import SMALL_FILE_THRESHOLD_MB
+from src.console_ui import section, info
 
 
 def get_file_size_mb(file_path):
@@ -37,9 +38,11 @@ def decide_engine(file_path, threshold_mb=None):
         "reason": reason,
     }
 
-    print(f"[Router] الملف: {decision['file_path']}")
-    print(f"[Router] الحجم: {decision['file_size_mb']} MB (الحد الفاصل: {threshold_mb} MB)")
-    print(f"[Router] المحرك المختار: {engine}")
-    print(f"[Router] السبب: {reason}")
+    section("ENGINE ROUTER")
+    info("FILE", decision["file_path"])
+    info("SIZE", f"{decision["file_size_mb"]} MB")
+    info("THRESHOLD", f"{threshold_mb} MB")
+    info("ENGINE", engine)
+    info("DECISION", reason)
 
     return decision
